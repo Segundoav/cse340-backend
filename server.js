@@ -14,19 +14,19 @@ app.use(express.static('public'));
 
 // 2.Rutas
 app.get('/', (req, res) => {
-    res.render('home', { title: 'Home' });
+    res.render('home', { title: 'Service Network' });
 });
 
 app.get('/organizations', (req, res) => {
-    res.render('organizations', { title: 'Organizations' });
+    res.render('organizations', { title: 'Partner Organizations' });
 });
 
 app.get('/projects', (req, res) => {
-    res.render('projects', { title: 'Projects' });
+    res.render('projects', { title: 'Service Projects' });
 });
 
 app.get('/categories', (req, res) => {
-    res.render('categories', { title: 'Categories' });
+    res.render('categories', { title: 'Project Categories' });
 });
 
 // 3 Encender
