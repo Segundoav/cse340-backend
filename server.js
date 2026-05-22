@@ -66,24 +66,29 @@ app.get('/setup-db', async (req, res) => {
                 description TEXT NOT NULL,
                 organization_id INT REFERENCES public.organization(organization_id) ON DELETE CASCADE
             );
-
+        `);
+        await pool.query(`
             INSERT INTO public.projects (project_name, description, organization_id)
-            SELECT * FROM (VALUES 
-                ('Community Center Rebuild', 'Rebuilding the local community center with sustainable materials.', 1),
-                ('Urban Garden Initiative', 'Creating urban gardens in food deserts across the city.', 2),
-                ('Homeless Shelter Support', 'Providing weekly volunteer support to local homeless shelters.', 3)
-            ) AS data(project_name, description, organization_id::int)
+            SELECT 'Community Center Rebuild', 'Rebuilding the local community center.', 1
             WHERE NOT EXISTS (SELECT 1 FROM public.projects);
-
+        `);
+        await pool.query(`
+            INSERT INTO public.projects (project_name, description, organization_id) VALUES
+            ('Urban Garden Initiative', 'Creating urban gardens in food deserts.', 2),
+            ('Homeless Shelter Support', 'Providing weekly volunteer support.', 3)
+            ON CONFLICT DO NOTHING;
+        `);
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS public.project_categories (
                 project_id INT REFERENCES public.projects(project_id) ON DELETE CASCADE,
                 category_id INT REFERENCES public.categories(category_id) ON DELETE CASCADE,
                 PRIMARY KEY (project_id, category_id)
             );
-
-            INSERT INTO public.project_categories (project_id, category_id)
-            SELECT * FROM (VALUES (1,1),(2,3),(3,2)) AS data(project_id, category_id)
-            WHERE NOT EXISTS (SELECT 1 FROM public.project_categories);
+        `);
+        await pool.query(`
+            INSERT INTO public.project_categories (project_id, category_id) VALUES
+            (1,1),(2,3),(3,2)
+            ON CONFLICT DO NOTHING;
         `);
         res.send('✅ Tablas projects y project_categories creadas correctamente');
     } catch (error) {
