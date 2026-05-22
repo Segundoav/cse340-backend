@@ -2,22 +2,17 @@ import { getAllProjects } from './src/models/projects.js';
 import express from 'express';
 import pool from './src/models/db.js';
 import { getAllOrganizations } from './src/models/organizations.js';
-// 1. Aquí importamos tu nuevo modelo de categorías de forma moderna:
 import { getAllCategories } from './src/models/categories.js';
 
-const NODE_ENV =  process.env.NODE_ENV || "development";
+const NODE_ENV = process.env.NODE_ENV || "development";
 const PORT = process.env.PORT || 3000;
 
 const app = express();
-// 1. Configuracion
-// Dile a Express que use EJS
+
 app.set('view engine', 'ejs');
-// Dile dónde está tu carpeta de vistas
 app.set('views', './src/views');
-// Dile dónde están tus imágenes y CSS
 app.use(express.static('public'));
 
-// 2. Rutas
 app.get('/', (req, res) => {
     res.render('home', { title: 'Service Network' });
 });
@@ -28,9 +23,17 @@ app.get('/organizations', async (req, res) => {
     res.render('organizations', { title, organizations });
 });
 
+app.get('/projects', async (req, res) => {
+    try {
+        const projectsData = await getAllProjects();
+        const title = 'Service Projects';
+        res.render('projects', { title, projects: projectsData });
+    } catch (error) {
+        console.error("Error cargando proyectos:", error);
+        res.status(500).send("Error al cargar los proyectos");
+    }
+});
 
-
-// 2. Aquí modificamos tu ruta para que use "async" y traiga las categorías reales:
 app.get('/categories', async (req, res) => {
     try {
         const categoriesData = await getAllCategories();
@@ -41,20 +44,6 @@ app.get('/categories', async (req, res) => {
         res.status(500).send("Error al cargar las categorías");
     }
 });
-
-// 3. Encender el servidor
-// 3. Encender el servidor
-
-
-app.listen(PORT, async () => {
-    try {
-        console.log(`Server is running at http://127.0.0.1:${PORT}`);
-        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    } catch (error) {
-        console.error('Error connecting to the database:', error);
-    }
-});
-
 
 app.get('/debug-tables', async (req, res) => {
     try {
@@ -71,32 +60,42 @@ app.get('/debug-tables', async (req, res) => {
 app.get('/setup-db', async (req, res) => {
     try {
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS public.categories (
-                category_id SERIAL PRIMARY KEY,
-                category_name VARCHAR(100) NOT NULL
+            CREATE TABLE IF NOT EXISTS public.projects (
+                project_id SERIAL PRIMARY KEY,
+                project_name VARCHAR(150) NOT NULL,
+                description TEXT NOT NULL,
+                organization_id INT REFERENCES public.organization(organization_id) ON DELETE CASCADE
             );
 
-            INSERT INTO public.categories (category_name) 
+            INSERT INTO public.projects (project_name, description, organization_id)
             SELECT * FROM (VALUES 
-                ('Construction & Infrastructure'),
-                ('Education & Tutoring'),
-                ('Environmental & Clean-up')
-            ) AS data(category_name)
-            WHERE NOT EXISTS (SELECT 1 FROM public.categories);
+                ('Community Center Rebuild', 'Rebuilding the local community center with sustainable materials.', 1),
+                ('Urban Garden Initiative', 'Creating urban gardens in food deserts across the city.', 2),
+                ('Homeless Shelter Support', 'Providing weekly volunteer support to local homeless shelters.', 3)
+            ) AS data(project_name, description, organization_id::int)
+            WHERE NOT EXISTS (SELECT 1 FROM public.projects);
+
+            CREATE TABLE IF NOT EXISTS public.project_categories (
+                project_id INT REFERENCES public.projects(project_id) ON DELETE CASCADE,
+                category_id INT REFERENCES public.categories(category_id) ON DELETE CASCADE,
+                PRIMARY KEY (project_id, category_id)
+            );
+
+            INSERT INTO public.project_categories (project_id, category_id)
+            SELECT * FROM (VALUES (1,1),(2,3),(3,2)) AS data(project_id, category_id)
+            WHERE NOT EXISTS (SELECT 1 FROM public.project_categories);
         `);
-        res.send('✅ Tabla categories creada e insertada correctamente');
+        res.send('✅ Tablas projects y project_categories creadas correctamente');
     } catch (error) {
         res.status(500).send('❌ Error: ' + error.message);
     }
 });
 
-app.get('/projects', async (req, res) => {
+app.listen(PORT, async () => {
     try {
-        const projectsData = await getAllProjects();
-        const title = 'Service Projects';
-        res.render('projects', { title, projects: projectsData });
+        console.log(`Server is running at http://127.0.0.1:${PORT}`);
+        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     } catch (error) {
-        console.error("Error cargando proyectos:", error);
-        res.status(500).send("Error al cargar los proyectos");
+        console.error('Error connecting to the database:', error);
     }
 });
