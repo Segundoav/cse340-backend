@@ -104,3 +104,12 @@ app.listen(PORT, async () => {
         console.error('Error connecting to the database:', error);
     }
 });
+
+app.get('/debug-org', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM organization');
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
