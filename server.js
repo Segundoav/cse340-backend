@@ -45,11 +45,26 @@ app.get('/categories', async (req, res) => {
 
 // 3. Encender el servidor
 // 3. Encender el servidor
+
+
 app.listen(PORT, async () => {
     try {
         console.log(`Server is running at http://127.0.0.1:${PORT}`);
         console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     } catch (error) {
         console.error('Error connecting to the database:', error);
+    }
+});
+
+
+app.get('/debug-tables', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_schema = 'public'
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
