@@ -1,5 +1,5 @@
 import express from 'express';
-import { testConnection } from './src/models/db.js';
+import pool from './src/models/db.js';
 import { getAllOrganizations } from './src/models/organizations.js';
 // 1. Aquí importamos tu nuevo modelo de categorías de forma moderna:
 import { getAllCategories } from './src/models/categories.js';
