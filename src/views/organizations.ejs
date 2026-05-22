@@ -2,11 +2,12 @@
     <main>
         <h1><%= title %></h1>
         
-        <p>Here are our project categories:</p>
+        <p>Here are our partner organizations:</p>
         <ul>
-            <% categories.forEach(category => { %>
+            <% organizations.forEach(organization => { %>
                 <li>
-                    <strong><%= category.category_name %></strong>
+                    <strong><%= organization.name %></strong>: <%= organization.contact_email %>
+                    <p><%= organization.description %></p>
                 </li>
             <% }); %>
         </ul>
