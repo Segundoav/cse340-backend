@@ -1,3 +1,4 @@
+import { getAllProjects } from './src/models/projects.js';
 import express from 'express';
 import pool from './src/models/db.js';
 import { getAllOrganizations } from './src/models/organizations.js';
@@ -27,9 +28,7 @@ app.get('/organizations', async (req, res) => {
     res.render('organizations', { title, organizations });
 });
 
-app.get('/projects', (req, res) => {
-    res.render('projects', { title: 'Service Projects' });
-});
+
 
 // 2. Aquí modificamos tu ruta para que use "async" y traiga las categorías reales:
 app.get('/categories', async (req, res) => {
@@ -88,5 +87,16 @@ app.get('/setup-db', async (req, res) => {
         res.send('✅ Tabla categories creada e insertada correctamente');
     } catch (error) {
         res.status(500).send('❌ Error: ' + error.message);
+    }
+});
+
+app.get('/projects', async (req, res) => {
+    try {
+        const projectsData = await getAllProjects();
+        const title = 'Service Projects';
+        res.render('projects', { title, projects: projectsData });
+    } catch (error) {
+        console.error("Error cargando proyectos:", error);
+        res.status(500).send("Error al cargar los proyectos");
     }
 });

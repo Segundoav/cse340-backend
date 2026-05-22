@@ -5,10 +5,11 @@
     <p>Check out our current service projects below. We have many opportunities for you to get involved and help the community!</p>
     
     <ul>
-        <li><strong>Park Restoration:</strong> Join us this Saturday to plant trees and clean up the local park.</li>
-        <li><strong>Children's Literacy:</strong> Help children improve their reading skills at the community center.</li>
-        <li><strong>Elderly Assistance:</strong> Spend time with seniors and help them with daily tasks or technology.</li>
-        <li><strong>Food Bank Collection:</strong> We are gathering non-perishable items for families in need.</li>
+        <% projects.forEach(project => { %>
+            <li>
+                <strong><%= project.project_name %></strong>: <%= project.description %>
+            </li>
+        <% }); %>
     </ul>
 </main>
 
