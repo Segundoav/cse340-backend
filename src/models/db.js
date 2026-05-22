@@ -1,60 +1,35 @@
-import 'dotenv/config';
-import pg from 'pg';
-const { Pool } = pg;
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
+dotenv.config();
 
-/**
- * Connection pool for PostgreSQL database.
- */
-const pool = new Pool({
-    connectionString: process.env.DB_URL,
+let pool;
+
+// Si está en Render (Producción), usa la URL interna con seguridad SSL obligatorio
+if (process.env.NODE_ENV === 'production' || process.env.DATABASE_URL.includes('render.com')) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
     ssl: {
-        rejectUnauthorized: false
+      rejectUnauthorized: false // ¡Obligatorio para que Render acepte la conexión!
     }
-});
-
-let db = null;
-
-if (process.env.NODE_ENV === 'development' && process.env.ENABLE_SQL_LOGGING === 'true') {
-    db = {
-        async query(text, params) {
-            try {
-                const start = Date.now();
-                const res = await pool.query(text, params);
-                const duration = Date.now() - start;
-                console.log('Executed query:', { 
-                    text: text.replace(/\s+/g, ' ').trim(), 
-                    duration: `${duration}ms`, 
-                    rows: res.rowCount 
-                });
-                return res;
-            } catch (error) {
-                console.error('Error in query:', { 
-                    text: text.replace(/\s+/g, ' ').trim(), 
-                    error: error.message 
-                });
-                throw error;
-            }
-        },
-        async close() {
-            await pool.end();
-        }
-    };
+  });
 } else {
-    db = pool;
+  // Si estás en tu computadora local (Desarrollo)
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL
+  });
 }
 
-/**
- * Tests the database connection by executing a simple query.
- */
-const testConnection = async() => {
-    try {
-        const result = await db.query('SELECT NOW() as current_time');
-        console.log('Database connection successful:', result.rows[0].current_time);
-        return true;
-    } catch (error) {
-        console.error('Database connection failed:', error.message);
-        throw error;
-    }
-};
+// Probar conexión de forma automática en los logs
+async function testConnection() {
+  try {
+    const res = await pool.query('SELECT NOW()');
+    console.log('¡Base de datos conectada con éxito en Render! Hora del servidor:', res.rows[0].now);
+  } catch (err) {
+    console.error('Error de conexión a la base de datos:', err.message);
+  }
+}
 
-export { db as default, testConnection };
+testConnection();
+
+export default pool;
