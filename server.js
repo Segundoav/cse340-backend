@@ -68,3 +68,25 @@ app.get('/debug-tables', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+app.get('/setup-db', async (req, res) => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS public.categories (
+                category_id SERIAL PRIMARY KEY,
+                category_name VARCHAR(100) NOT NULL
+            );
+
+            INSERT INTO public.categories (category_name) 
+            SELECT * FROM (VALUES 
+                ('Construction & Infrastructure'),
+                ('Education & Tutoring'),
+                ('Environmental & Clean-up')
+            ) AS data(category_name)
+            WHERE NOT EXISTS (SELECT 1 FROM public.categories);
+        `);
+        res.send('✅ Tabla categories creada e insertada correctamente');
+    } catch (error) {
+        res.status(500).send('❌ Error: ' + error.message);
+    }
+});
