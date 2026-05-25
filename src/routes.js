@@ -1,0 +1,87 @@
+import express from 'express';
+import pool from './models/db.js'; // Lo necesitamos únicamente para tus consultas de mantenimiento de abajo
+
+// Importamos las funciones de tus controladores especializados
+import { showHomePage } from './controllers/index.js';
+import { showOrganizationsPage } from './controllers/organizations.js';
+import { showProjectsPage } from './controllers/projects.js';
+import { showCategoriesPage } from './controllers/categories.js';
+import { testErrorPage } from './controllers/errors.js';
+
+const router = express.Router();
+
+// ==========================================
+// VISTAS PÚBLICAS DE LA APLICACIÓN
+// ==========================================
+router.get('/', showHomePage);
+router.get('/organizations', showOrganizationsPage);
+router.get('/projects', showProjectsPage);
+router.get('/categories', showCategoriesPage);
+
+// Ruta de prueba para forzar el Error 500 y verificar tus pantallas de error
+router.get('/test-error', testErrorPage);
+
+// ==========================================
+// HERRAMIENTAS DE MANTENIMIENTO DE BASE DE DATOS
+// ==========================================
+router.get('/debug-tables', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_schema = 'public'
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/debug-org', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM organization');
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/setup-db', async (req, res) => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS public.projects (
+                project_id SERIAL PRIMARY KEY,
+                project_name VARCHAR(150) NOT NULL,
+                description TEXT NOT NULL,
+                organization_id INT REFERENCES public.organization(organization_id) ON DELETE CASCADE
+            );
+        `);
+        await pool.query(`
+            INSERT INTO public.projects (project_name, description, organization_id)
+            SELECT 'Community Center Rebuild', 'Rebuilding the local community center.', 1
+            WHERE NOT EXISTS (SELECT 1 FROM public.projects);
+        `);
+        await pool.query(`
+            INSERT INTO public.projects (project_name, description, organization_id) VALUES
+            ('Urban Garden Initiative', 'Creating urban gardens in food deserts.', 2),
+            ('Homeless Shelter Support', 'Providing weekly volunteer support.', 3)
+            ON CONFLICT DO NOTHING;
+        `);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS public.project_categories (
+                project_id INT REFERENCES public.projects(project_id) ON DELETE CASCADE,
+                category_id INT REFERENCES public.categories(category_id) ON DELETE CASCADE,
+                PRIMARY KEY (project_id, category_id)
+            );
+        `);
+        await pool.query(`
+            INSERT INTO public.project_categories (project_id, category_id) VALUES
+            (1,1),(2,3),(3,2)
+            ON CONFLICT DO NOTHING;
+        `);
+        res.send('✅ Tables projects and project_categories created successfully');
+    } catch (error) {
+        res.status(500).send('❌ Error: ' + error.message);
+    }
+});
+
+export default router;
