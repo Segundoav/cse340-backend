@@ -1,6 +1,6 @@
-import { getAllProjects } from './src/models/projects.js';
 import express from 'express';
 import pool from './src/models/db.js';
+import { getAllProjects } from './src/models/projects.js';
 import { getAllOrganizations } from './src/models/organizations.js';
 import { getAllCategories } from './src/models/categories.js';
 
@@ -9,11 +9,12 @@ const PORT = process.env.PORT || 3000;
 
 const app = express();
 
+// View engine configuration
 app.set('view engine', 'ejs');
 app.set('views', './src/views');
 app.use(express.static('public'));
 
-// 1. Middleware to log all incoming requests (CORREGIDO: Usa NODE_ENV seguro)
+// 1. Middleware to log all incoming requests
 app.use((req, res, next) => {
     if (NODE_ENV === 'development') {
         console.log(`${req.method} ${req.url}`);
@@ -21,49 +22,56 @@ app.use((req, res, next) => {
     next(); 
 });
 
-// 2. Middleware to make NODE_ENV available to all templates (CORREGIDO: Usa NODE_ENV seguro)
+// 2. Middleware to make NODE_ENV available to all templates
 app.use((req, res, next) => {
     res.locals.NODE_ENV = NODE_ENV; 
     next();
 });
 
+// ==========================================
+// ROUTES
+// ==========================================
+
 app.get('/', (req, res) => {
     res.render('home', { title: 'Service Network' });
 });
 
-// 3. Ruta de organizaciones (CORREGIDO: Se añadió try/catch para evitar caídas del servidor)
-app.get('/organizations', async (req, res) => {
+app.get('/organizations', async (req, res, next) => {
     try {
         const organizations = await getAllOrganizations();
         const title = 'Our Partner Organizations';
         res.render('organizations', { title, organizations });
     } catch (error) {
-        console.error("Error cargando organizaciones:", error);
-        res.status(500).send("Error al cargar las organizaciones");
+        console.error("Error loading organizations:", error);
+        next(error); // 👈 Directs to your 500.ejs error template
     }
 });
 
-app.get('/projects', async (req, res) => {
+app.get('/projects', async (req, res, next) => {
     try {
         const projectsData = await getAllProjects();
         const title = 'Service Projects';
         res.render('projects', { title, projects: projectsData });
     } catch (error) {
-        console.error("Error cargando proyectos:", error);
-        res.status(500).send("Error al cargar los proyectos");
+        console.error("Error loading projects:", error);
+        next(error); // 👈 Directs to your 500.ejs error template
     }
 });
 
-app.get('/categories', async (req, res) => {
+app.get('/categories', async (req, res, next) => {
     try {
         const categoriesData = await getAllCategories();
         const title = 'Project Categories';
         res.render('categories', { title, categories: categoriesData });
     } catch (error) {
-        console.error("Error cargando categorías:", error);
-        res.status(500).send("Error al cargar las categorías");
+        console.error("Error loading categories:", error);
+        next(error); // 👈 Directs to your 500.ejs error template
     }
 });
+
+// ==========================================
+// DATABASE DEBUG & SETUP UTILITIES
+// ==========================================
 
 app.get('/debug-tables', async (req, res) => {
     try {
@@ -71,6 +79,15 @@ app.get('/debug-tables', async (req, res) => {
             SELECT table_name FROM information_schema.tables 
             WHERE table_schema = 'public'
         `);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/debug-org', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM organization');
         res.json(result.rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -110,26 +127,29 @@ app.get('/setup-db', async (req, res) => {
             (1,1),(2,3),(3,2)
             ON CONFLICT DO NOTHING;
         `);
-        res.send('✅ Tablas projects y project_categories creadas correctamente');
+        res.send('✅ Tables projects and project_categories created successfully');
     } catch (error) {
         res.status(500).send('❌ Error: ' + error.message);
     }
 });
 
-app.listen(PORT, async () => {
-    try {
-        console.log(`Server is running at http://127.0.0.1:${PORT}`);
-        console.log(`Environment: ${NODE_ENV}`);
-    } catch (error) {
-        console.error('Error connecting to the database:', error);
-    }
+// ==========================================
+// ERROR HANDLING MIDDLEWARE (MUST BE AT THE END)
+// ==========================================
+
+// 404 - Page Not Found
+app.use((req, res, next) => {
+    res.status(404).render('404', { title: "Page Not Found" });
 });
 
-app.get('/debug-org', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM organization');
-        res.json(result.rows);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+// 500 - Internal Server Error
+app.use((err, req, res, next) => {
+    console.error(err.stack); 
+    res.status(500).render('500', { title: "Internal Server Error", error: err });
+});
+
+// Server Initialization
+app.listen(PORT, () => {
+    console.log(`Server is running at http://127.0.0.1:${PORT}`);
+    console.log(`Environment: ${NODE_ENV}`);
 });
