@@ -13,14 +13,34 @@ app.set('view engine', 'ejs');
 app.set('views', './src/views');
 app.use(express.static('public'));
 
+// 1. Middleware to log all incoming requests (CORREGIDO: Usa NODE_ENV seguro)
+app.use((req, res, next) => {
+    if (NODE_ENV === 'development') {
+        console.log(`${req.method} ${req.url}`);
+    }
+    next(); 
+});
+
+// 2. Middleware to make NODE_ENV available to all templates (CORREGIDO: Usa NODE_ENV seguro)
+app.use((req, res, next) => {
+    res.locals.NODE_ENV = NODE_ENV; 
+    next();
+});
+
 app.get('/', (req, res) => {
     res.render('home', { title: 'Service Network' });
 });
 
+// 3. Ruta de organizaciones (CORREGIDO: Se añadió try/catch para evitar caídas del servidor)
 app.get('/organizations', async (req, res) => {
-    const organizations = await getAllOrganizations();
-    const title = 'Our Partner Organizations';
-    res.render('organizations', { title, organizations });
+    try {
+        const organizations = await getAllOrganizations();
+        const title = 'Our Partner Organizations';
+        res.render('organizations', { title, organizations });
+    } catch (error) {
+        console.error("Error cargando organizaciones:", error);
+        res.status(500).send("Error al cargar las organizaciones");
+    }
 });
 
 app.get('/projects', async (req, res) => {
@@ -99,7 +119,7 @@ app.get('/setup-db', async (req, res) => {
 app.listen(PORT, async () => {
     try {
         console.log(`Server is running at http://127.0.0.1:${PORT}`);
-        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`Environment: ${NODE_ENV}`);
     } catch (error) {
         console.error('Error connecting to the database:', error);
     }
