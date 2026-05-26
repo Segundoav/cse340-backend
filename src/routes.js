@@ -1,3 +1,5 @@
+import { showCategoriesPage, showCategoryDetailPage } from './controllers/categories.js';
+
 import express from 'express';
 import pool from './models/db.js'; // Lo necesitamos únicamente para tus consultas de mantenimiento de abajo
 
@@ -5,7 +7,7 @@ import pool from './models/db.js'; // Lo necesitamos únicamente para tus consul
 import { showHomePage } from './controllers/index.js';
 import { showOrganizationsPage } from './controllers/organizations.js';
 import { showProjectsPage } from './controllers/projects.js';
-import { showCategoriesPage } from './controllers/categories.js';
+
 import { testErrorPage } from './controllers/errors.js';
 
 const router = express.Router();
@@ -13,6 +15,8 @@ const router = express.Router();
 // ==========================================
 // VISTAS PÚBLICAS DE LA APLICACIÓN
 // ==========================================
+router.get('/category/:id', showCategoryDetailPage);
+
 router.get('/', showHomePage);
 router.get('/organizations', showOrganizationsPage);
 router.get('/projects', showProjectsPage);

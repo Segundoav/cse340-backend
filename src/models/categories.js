@@ -1,6 +1,6 @@
 import pool from './db.js';
 
-// Función para obtener todas las categorías de la base de datos
+// 1. Función para obtener todas las categorías de la base de datos
 export async function getAllCategories() {
     try {
         const sql = 'SELECT category_id, category_name FROM public.categories ORDER BY category_name ASC';
@@ -8,6 +8,52 @@ export async function getAllCategories() {
         return result.rows;
     } catch (error) {
         console.error("Error en getAllCategories:", error);
+        throw error;
+    }
+}
+
+// 2. NUEVO: Recuperar una sola categoría por su ID
+export async function getCategoryById(id) {
+    try {
+        const sql = "SELECT category_id, category_name FROM public.categories WHERE category_id = $1";
+        const result = await pool.query(sql, [id]);
+        return result.rows[0]; 
+    } catch (error) {
+        console.error("Error en getCategoryById:", error);
+        throw error;
+    }
+}
+
+// 3. Recuperar todos los proyectos de servicio para una categoría dada
+export async function getProjectsByCategory(categoryId) {
+    try {
+        const sql = `
+            SELECT p.project_id, p.project_name, p.description 
+            FROM public.projects p
+            JOIN public.project_categories pc ON p.project_id = pc.project_id
+            WHERE pc.category_id = $1
+        `;
+        const result = await pool.query(sql, [categoryId]);
+        return result.rows;
+    } catch (error) {
+        console.error("Error en getProjectsByCategory:", error);
+        throw error;
+    }
+}
+
+// 4. NUEVO: Recuperar todas las categorías de un proyecto específico (Para las etiquetas dinámicas)
+export async function getCategoriesByProject(projectId) {
+    try {
+        const sql = `
+            SELECT c.category_id, c.category_name 
+            FROM public.categories c
+            JOIN public.project_categories pc ON c.category_id = pc.category_id
+            WHERE pc.project_id = $1
+        `;
+        const result = await pool.query(sql, [projectId]);
+        return result.rows;
+    } catch (error) {
+        console.error("Error en getCategoriesByProject:", error);
         throw error;
     }
 }
