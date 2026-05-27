@@ -5,8 +5,8 @@ import pool from './models/db.js'; // Lo necesitamos únicamente para tus consul
 
 // Importamos las funciones de tus controladores especializados
 import { showHomePage } from './controllers/index.js';
+import { showOrganizationsPage } from './controllers/organizations.js';
 import { showProjectsPage, showProjectDetailPage } from './controllers/projects.js';
-import { showProjectsPage } from './controllers/projects.js';
 
 import { testErrorPage } from './controllers/errors.js';
 
