@@ -6,10 +6,12 @@
         <ul>
             <% organizations.forEach(organization => { %>
                 <li>
-                    <strong><%= organization.name %></strong>: <%= organization.contact_email %>
+                    <a href="/organization/<%= organization.organization_id %>" style="font-weight: bold; text-decoration: none; color: #007acc; font-size: 1.1em;">
+                        <%= organization.name %>
+                    </a>: <%= organization.contact_email %>
                     <p><%= organization.description %></p>
                 </li>
             <% }); %>
         </ul>
     </main>
-<%- include('partials/footer') %>
+<%- include('partials/footer') %>A

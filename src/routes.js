@@ -5,7 +5,7 @@ import pool from './models/db.js'; // Lo necesitamos únicamente para tus consul
 
 // Importamos las funciones de tus controladores especializados
 import { showHomePage } from './controllers/index.js';
-import { showOrganizationsPage } from './controllers/organizations.js';
+import { showOrganizationsPage, showOrganizationDetailPage } from './controllers/organizations.js';
 import { showProjectsPage, showProjectDetailPage } from './controllers/projects.js';
 
 import { testErrorPage } from './controllers/errors.js';
@@ -17,6 +17,8 @@ const router = express.Router();
 // ==========================================
 router.get('/category/:id', showCategoryDetailPage);
 router.get('/project/:id', showProjectDetailPage);
+
+router.get('/organization/:id', showOrganizationDetailPage);
 
 router.get('/', showHomePage);
 router.get('/organizations', showOrganizationsPage);

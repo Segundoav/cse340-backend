@@ -4,13 +4,16 @@
     <h1><%= title %></h1>
     <p>Check out our current service projects below. We have many opportunities for you to get involved and help the community!</p>
     
-    <ul>
-        <% projects.forEach(project => { %>
-            <li>
-                <strong><%= project.project_name %></strong>: <%= project.description %>
-            </li>
-        <% }); %>
-    </ul>
+<ul>
+    <% projects.forEach(project => { %>
+        <li>
+            <a href="/project/<%= project.project_id %>" style="font-weight: bold; text-decoration: none; color: #007acc; font-size: 1.1em;">
+                <%= project.project_name %>
+            </a>
+            : <%= project.description %>
+        </li>
+    <% }); %>
+</ul>
 </main>
 
 <%- include('partials/footer') %>

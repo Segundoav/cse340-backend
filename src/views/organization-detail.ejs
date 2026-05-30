@@ -1,0 +1,26 @@
+<%- include('partials/header') %>
+
+<main style="max-width: 800px; margin: 40px auto; padding: 20px; font-family: sans-serif;">
+    <h1><%= organization.name %></h1>
+    <p><strong>Email:</strong> <%= organization.contact_email %></p>
+    <p><strong>Description:</strong> <%= organization.description %></p>
+
+    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ccc;">
+
+    <h3>Projects by this Organization:</h3>
+    <% if (projects && projects.length > 0) { %>
+        <ul>
+            <% projects.forEach(project => { %>
+                <li>
+                    <a href="/project/<%= project.project_id %>" style="color: #007acc; font-weight: bold; text-decoration: none;">
+                        <%= project.project_name %>
+                    </a>
+                </li>
+            <% }) %>
+        </ul>
+    <% } else { %>
+        <p>No projects assigned to this organization yet.</p>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>
