@@ -2,6 +2,8 @@
 
 <main style="max-width: 800px; margin: 40px auto; padding: 20px; font-family: sans-serif;">
     <h1><%= organization.name %></h1>
+
+    <img src="/images/<%= organization.logo_filename %>" alt="<%= organization.name %> logo" class="org-detail-logo" />
     <p><strong>Email:</strong> <%= organization.contact_email %></p>
     <p><strong>Description:</strong> <%= organization.description %></p>
 

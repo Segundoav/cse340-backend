@@ -5,7 +5,15 @@ import pool from './models/db.js'; // Lo necesitamos únicamente para tus consul
 
 // Importamos las funciones de tus controladores especializados
 import { showHomePage } from './controllers/index.js';
-import { showOrganizationsPage, showOrganizationDetailPage } from './controllers/organizations.js';
+
+// MODIFICADO (W04): Traemos también las dos nuevas funciones del controlador de organizaciones
+import { 
+    showOrganizationsPage, 
+    showOrganizationDetailPage,
+    showNewOrganizationForm,
+    processNewOrganizationForm
+} from './controllers/organizations.js';
+
 import { showProjectsPage, showProjectDetailPage } from './controllers/projects.js';
 
 import { testErrorPage } from './controllers/errors.js';
@@ -24,6 +32,16 @@ router.get('/', showHomePage);
 router.get('/organizations', showOrganizationsPage);
 router.get('/projects', showProjectsPage);
 router.get('/categories', showCategoriesPage);
+
+// --------------------------------------------------------------------
+// NUEVAS RUTAS DE LA SEMANA 4 (W04)
+// --------------------------------------------------------------------
+// 1. Ruta GET para MOSTRAR la interfaz del formulario limpio
+router.get('/new-organization', showNewOrganizationForm);
+
+// 2. Ruta POST para RECIBIR y procesar los datos que envíe el formulario
+router.post('/new-organization', processNewOrganizationForm);
+// --------------------------------------------------------------------
 
 // Ruta de prueba para forzar el Error 500 y verificar tus pantallas de error
 router.get('/test-error', testErrorPage);

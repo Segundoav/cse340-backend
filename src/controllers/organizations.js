@@ -1,10 +1,9 @@
-import { getAllOrganizations } from '../models/organizations.js';
+import { getAllOrganizations, createOrganization } from '../models/organizations.js';
 import pool from '../models/db.js';
 
 // 1. Lista general de organizaciones
 const showOrganizationsPage = async (req, res) => {
     try {
-        // Usamos la función exacta que ya tenías y que sí funciona perfectamente
         const organizations = await getAllOrganizations(); 
         const title = 'Our Partner Organizations';
         res.render('organizations', { title, organizations });
@@ -19,7 +18,6 @@ const showOrganizationDetailPage = async (req, res) => {
     try {
         const orgId = req.params.id;
         
-        // Ejecutamos la consulta usando la propiedad .query correcta del pool importado
         const orgResult = await pool.query('SELECT * FROM organization WHERE organization_id = $1', [orgId]);
         const organization = orgResult.rows[0];
 
@@ -27,7 +25,6 @@ const showOrganizationDetailPage = async (req, res) => {
             return res.status(404).render('errors/404', { title: 'Organization Not Found' });
         }
 
-        // Jalamos los proyectos vinculados a esta organización
         const projectsResult = await pool.query('SELECT * FROM projects WHERE organization_id = $1', [orgId]);
         const projects = projectsResult.rows;
 
@@ -39,4 +36,38 @@ const showOrganizationDetailPage = async (req, res) => {
     }
 };
 
-export { showOrganizationsPage, showOrganizationDetailPage };
+// ====================================================================
+// NUEVAS FUNCIONES DE LA SEMANA 4 (W04)
+// ====================================================================
+
+// 3. Muestra el formulario vacío al usuario (GET)
+const showNewOrganizationForm = async (req, res) => {
+    // Nota: Como tu archivo en la captura se llama 'new-organizations.ejs', usamos ese nombre exacto aquí.
+    res.render('new-organizations', { title: 'Add New Organization' });
+};
+
+// 4. Recibe los datos que el usuario escribió y los procesa (POST)
+const processNewOrganizationForm = async (req, res) => {
+    try {
+        // Capturamos lo que el usuario escribió en las cajas de texto del HTML
+        const { name, description, contactEmail } = req.body;
+        const logoFilename = 'placeholder-logo.png'; // Le asignamos el logo temporal que descargaste
+        
+        // Llamamos al modelo para insertar los datos en PostgreSQL y obtener el nuevo ID
+        const organizationId = await createOrganization(name, description, contactEmail, logoFilename);
+        
+        // Redirigimos al navegador automáticamente a la página de la organización creada
+        res.redirect(`/organization/${organizationId}`);
+    } catch (error) {
+        console.error("Error en processNewOrganizationForm controller: " + error.message);
+        res.status(500).send("Error en el servidor al crear la organización");
+    }
+};
+
+// Exportamos tus dos funciones antiguas MÁS las dos nuevas funciones
+export { 
+    showOrganizationsPage, 
+    showOrganizationDetailPage, 
+    showNewOrganizationForm, 
+    processNewOrganizationForm 
+};

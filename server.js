@@ -10,6 +10,11 @@ const app = express();
 // View engine configuration (Configuración de las Vistas con EJS)
 app.set('view engine', 'ejs');
 app.set('views', './src/views');
+
+// Middleware to parse incoming form data from request bodies (W04)
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 app.use(express.static('public'));
 
 // 1. Middleware para registrar en la consola las peticiones del usuario

@@ -9,4 +9,23 @@ const getAllOrganizations = async () => {
     return result.rows;
 }
 
-export { getAllOrganizations };
+
+// NEW FUNCTION (W04): TO INSERT A NEW ORGANIZATION
+
+const createOrganization = async (name, description, contactEmail, logoFilename) => {
+    const query = `
+      INSERT INTO organization (name, description, contact_email, logo_filename)
+      VALUES ($1, $2, $3, $4)
+      RETURNING organization_id;
+    `;
+    const queryParams = [name, description, contactEmail, logoFilename];
+    const result = await db.query(query, queryParams);
+    
+    if (result.rows.length === 0) {
+        throw new Error('Failed to create organization');
+    }
+    
+    return result.rows[0].organization_id;
+};
+
+export { getAllOrganizations, createOrganization };
