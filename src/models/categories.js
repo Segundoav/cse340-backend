@@ -57,3 +57,32 @@ export async function getCategoriesByProject(projectId) {
         throw error;
     }
 }
+
+// 5. NUEVO: Insertar una nueva categoría en la base de datos
+export async function insertCategory(category_name) {
+    try {
+        const sql = 'INSERT INTO public.categories (category_name) VALUES ($1) RETURNING *';
+        const result = await pool.query(sql, [category_name]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error en insertCategory:", error);
+        throw error;
+    }
+}
+
+// 6. Actualizar una categoría existente en la base de datos
+export async function updateCategory(category_id, category_name) {
+    try {
+        const sql = `
+            UPDATE public.categories 
+            SET category_name = $1 
+            WHERE category_id = $2 
+            RETURNING *
+        `;
+        const result = await pool.query(sql, [category_name, category_id]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error en updateCategory:", error);
+        throw error;
+    }
+}

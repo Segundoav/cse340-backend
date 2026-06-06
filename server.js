@@ -2,6 +2,9 @@ import express from 'express';
 // IMPORTANTE: Le avisamos a server.js que el mapa de URLs viene de tu archivo maestro de rutas
 import router from './src/routes.js';
 
+import session from 'express-session';
+import flash from 'connect-flash';
+
 const NODE_ENV = process.env.NODE_ENV || "development";
 const PORT = process.env.PORT || 3000;
 
@@ -14,6 +17,20 @@ app.set('views', './src/views');
 // Middleware to parse incoming form data from request bodies (W04)
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Sesiones y mensajes flash
+app.use(session({
+    secret: 'cse340secret',
+    resave: false,
+    saveUninitialized: true
+}));
+app.use(flash());
+
+// Hacer los mensajes flash disponibles en todas las vistas
+app.use((req, res, next) => {
+    res.locals.messages = req.flash();
+    next();
+});
 
 app.use(express.static('public'));
 

@@ -7,6 +7,9 @@
     <p><strong>Email:</strong> <%= organization.contact_email %></p>
     <p><strong>Description:</strong> <%= organization.description %></p>
 
+    <!-- Botón de editar -->
+    <a href="/edit-organization/<%= organization.organization_id %>" class="btn-primary">Edit Organization</a>
+
     <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ccc;">
 
     <h3>Projects by this Organization:</h3>

@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+
+<main class="container">
+  <h1>Create New Category</h1>
+
+  <!-- Bloque para mostrar mensajes de error del servidor si existen -->
+  <% if (errors && errors.length > 0) { %>
+    <ul class="error-list">
+      <% errors.forEach(function(error) { %>
+        <li><%= error.msg %></li>
+      <% }) %>
+    </ul>
+  <% } %>
+
+  <form action="/new-category" method="POST" class="form-standard">
+    <div class="form-group">
+      <label for="category_name">Category Name:</label>
+      <input 
+        type="text" 
+        id="category_name" 
+        name="category_name" 
+        value="<%= locals.category_name || '' %>" 
+        maxlength="100" 
+        required 
+        placeholder="e.g., Technology, Health"
+      >
+    </div>
+    
+    <button type="submit" class="btn-primary">Create Category</button>
+  </form>
+</main>
+
+<%- include('partials/footer') %>

@@ -28,4 +28,26 @@ const createOrganization = async (name, description, contactEmail, logoFilename)
     return result.rows[0].organization_id;
 };
 
-export { getAllOrganizations, createOrganization };
+
+const getOrganizationById = async (id) => {
+    const query = `
+        SELECT organization_id, name, description, contact_email, logo_filename
+        FROM organization WHERE organization_id = $1;
+    `;
+    const result = await db.query(query, [id]);
+    return result.rows[0];
+};
+
+const updateOrganization = async (id, name, description, contactEmail) => {
+    const query = `
+        UPDATE organization 
+        SET name = $1, description = $2, contact_email = $3
+        WHERE organization_id = $4
+        RETURNING organization_id;
+    `;
+    const result = await db.query(query, [name, description, contactEmail, id]);
+    return result.rows[0];
+};
+
+export { getAllOrganizations, createOrganization, getOrganizationById, updateOrganization };
+

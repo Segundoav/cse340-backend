@@ -1,46 +1,98 @@
-import pool from '../models/db.js'; // Usamos pool temporalmente aquí para cumplir rápido
+import pool from '../models/db.js';
+import { getProjectById, updateProject, getAllCategoriesForProject, updateProjectCategories } from '../models/projects.js';
 
-// 1. Controlador para la lista general
 export const showProjectsPage = async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM public.projects');
-        const projects = result.rows;
-        const title = 'Service Projects';
-        res.render('projects', { title, projects });
+        res.render('projects', { title: 'Service Projects', projects: result.rows });
     } catch (error) {
-        console.error("Error loading projects:", error);
         res.status(500).send("Error loading projects");
     }
 };
 
-// 2. 🌟 Controlador para la vista de detalle individual
 export const showProjectDetailPage = async (req, res) => {
     try {
         const projectId = req.params.id;
-
-        // Consultamos el proyecto por su ID
         const projectResult = await pool.query('SELECT * FROM public.projects WHERE project_id = $1', [projectId]);
         const project = projectResult.rows[0];
+        if (!project) return res.status(404).render('errors/404', { title: 'Page Not Found' });
 
-        if (!project) {
-            return res.status(404).render('errors/404', { title: 'Page Not Found' }); 
-        }
-
-        // Consultamos las categorías asignadas a este proyecto para pintar los tags
         const categoryResult = await pool.query(`
             SELECT c.category_id, c.category_name 
             FROM public.categories c
             JOIN public.project_categories pc ON c.category_id = pc.category_id
             WHERE pc.project_id = $1
         `, [projectId]);
-        
-        const categories = categoryResult.rows;
-        const title = project.project_name;
 
-        // Renderizamos la vista que acabamos de crear con todos los datos
-        res.render('project-detail', { title, project, categories });
+        res.render('project-detail', { title: project.project_name, project, categories: categoryResult.rows });
     } catch (error) {
-        console.error("Error loading project detail:", error);
-        res.status(500).send("Server Error loading project detail");
+        res.status(500).send("Server Error");
+    }
+};
+
+export const showEditProjectPage = async (req, res, next) => {
+    try {
+        const project = await getProjectById(req.params.id);
+        if (!project) {
+            req.flash('notice', 'Project not found.');
+            return res.redirect('/projects');
+        }
+        res.render('edit-project', { title: 'Edit Project', errors: null, project });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const processEditProject = async (req, res, next) => {
+    try {
+        const { project_id, project_name, description } = req.body;
+        await updateProject(project_id, project_name, description);
+        req.flash('notice', 'Project updated successfully.');
+        res.redirect(`/project/${project_id}`);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const showAssignCategoriesPage = async (req, res, next) => {
+    try {
+        const project = await getProjectById(req.params.id);
+        if (!project) {
+            req.flash('notice', 'Project not found.');
+            return res.redirect('/projects');
+        }
+        const categories = await getAllCategoriesForProject(req.params.id);
+        res.render('assign-categories', { title: 'Assign Categories', project, categories });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const processAssignCategories = async (req, res, next) => {
+    try {
+        const { project_id, category_ids } = req.body;
+        await updateProjectCategories(project_id, category_ids);
+        req.flash('notice', 'Categories updated successfully.');
+        res.redirect(`/project/${project_id}`);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const showNewProjectPage = async (req, res) => {
+    res.render('new-project', { title: 'Create New Project', errors: null });
+};
+
+export const processNewProject = async (req, res, next) => {
+    try {
+        const { project_name, description } = req.body;
+        const result = await pool.query(
+            'INSERT INTO public.projects (project_name, description) VALUES ($1, $2) RETURNING project_id',
+            [project_name, description]
+        );
+        req.flash('notice', 'Project created successfully.');
+        res.redirect(`/project/${result.rows[0].project_id}`);
+    } catch (error) {
+        next(error);
     }
 };

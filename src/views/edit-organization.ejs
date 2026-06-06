@@ -1,0 +1,36 @@
+<%- include('partials/header') %>
+
+<main class="container">
+  <h1>Edit Organization</h1>
+
+  <% if (errors && errors.length > 0) { %>
+    <ul class="error-list">
+      <% errors.forEach(function(error) { %>
+        <li><%= error.msg %></li>
+      <% }) %>
+    </ul>
+  <% } %>
+
+  <form action="/edit-organization/<%= organization.organization_id %>" method="POST" class="form-standard">
+    <div class="form-group">
+      <label for="name">Organization Name:</label>
+      <input type="text" id="name" name="name" value="<%= organization.name %>" maxlength="150" required>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description:</label>
+      <textarea id="description" name="description" required><%= organization.description %></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="contactEmail">Contact Email:</label>
+      <input type="email" id="contactEmail" name="contactEmail" value="<%= organization.contact_email %>" required>
+    </div>
+
+    <input type="hidden" name="organization_id" value="<%= organization.organization_id %>">
+
+    <button type="submit" class="btn-primary">Update Organization</button>
+  </form>
+</main>
+
+<%- include('partials/footer') %>
