@@ -37,6 +37,8 @@ import {
     processNewProject
 } from './controllers/projects.js';
 
+import { showUserRegistrationForm, processUserRegistrationForm } from './controllers/users.js';
+
 const router = express.Router();
 
 // ==========================================
@@ -175,5 +177,9 @@ router.get('/setup-db', async (req, res) => {
         res.status(500).send('❌ Error: ' + error.message);
     }
 });
+
+// User registration routes
+router.get('/register', showUserRegistrationForm);
+router.post('/register', processUserRegistrationForm);
 
 export default router;
