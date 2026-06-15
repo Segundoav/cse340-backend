@@ -6,4 +6,8 @@
     <img class="main-logo" src="/images/cse340-service-network.png" alt="Logo">
 </main>
 
+<% if (isLoggedIn) { %>
+    <a href="/dashboard">My Dashboard</a>
+<% } %>
+
 <%- include('partials/footer') %>
