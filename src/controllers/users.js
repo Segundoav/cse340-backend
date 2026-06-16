@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { createUser, authenticateUser } from '../models/users.js';
+import { createUser, authenticateUser, getAllUsers } from '../models/users.js';
 
 const showUserRegistrationForm = (req, res) => {
     res.render('register', { title: 'Register' });
@@ -7,11 +7,10 @@ const showUserRegistrationForm = (req, res) => {
 
 const processUserRegistrationForm = async (req, res) => {
     const { name, email, password } = req.body;
-
     try {
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
-        const userId = await createUser(name, email, passwordHash);
+        await createUser(name, email, passwordHash);
         req.flash('success', 'Registration successful! Please log in.');
         res.redirect('/');
     } catch (error) {
@@ -27,15 +26,11 @@ const showLoginForm = (req, res) => {
 
 const processLoginForm = async (req, res) => {
     const { email, password } = req.body;
-
     try {
         const user = await authenticateUser(email, password);
         if (user) {
             req.session.user = user;
             req.flash('success', 'Login successful!');
-            if (res.locals.NODE_ENV === 'development') {
-                console.log('User logged in:', user);
-            }
             res.redirect('/dashboard');
         } else {
             req.flash('error', 'Invalid email or password.');
@@ -48,10 +43,8 @@ const processLoginForm = async (req, res) => {
     }
 };
 
-const processLogout = async (req, res) => {
-    if (req.session.user) {
-        delete req.session.user;
-    }
+const processLogout = (req, res) => {
+    if (req.session.user) delete req.session.user;
     req.flash('success', 'Logout successful!');
     res.redirect('/login');
 };
@@ -64,8 +57,39 @@ const requireLogin = (req, res, next) => {
     next();
 };
 
-const showDashboard = (req, res) => {
-    const { name, email } = req.session.user;
-    res.render('dashboard', { title: 'Dashboard', name, email });
+const requireRole = (role) => {
+    return (req, res, next) => {
+        if (!req.session || !req.session.user) {
+            req.flash('error', 'You must be logged in to access that page.');
+            return res.redirect('/login');
+        }
+        if (req.session.user.role_name !== role) {
+            req.flash('error', 'You do not have permission to access that page.');
+            return res.redirect('/dashboard');
+        }
+        next();
+    };
 };
-export { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, showDashboard };
+
+const showDashboard = (req, res) => {
+    const { name, email, role_name } = req.session.user;
+    res.render('dashboard', { title: 'Dashboard', name, email, role_name });
+};
+
+const showUsersPage = async (req, res) => {
+    try {
+        const users = await getAllUsers();
+        res.render('users', { title: 'Users', users });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        req.flash('error', 'Could not load users.');
+        res.redirect('/dashboard');
+    }
+};
+
+export { 
+    showUserRegistrationForm, processUserRegistrationForm, 
+    showLoginForm, processLoginForm, 
+    processLogout, requireLogin, requireRole,
+    showDashboard, showUsersPage 
+};

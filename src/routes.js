@@ -37,7 +37,7 @@ import {
     processNewProject
 } from './controllers/projects.js';
 
-import { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, showDashboard } from './controllers/users.js';
+import { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, requireRole, showDashboard, showUsersPage } from './controllers/users.js';
 
 const router = express.Router();
 
@@ -188,5 +188,7 @@ router.post('/login', processLoginForm);
 router.get('/logout', processLogout);
 // Protected dashboard route
 router.get('/dashboard', requireLogin, showDashboard);
+
+router.get('/users', requireLogin, requireRole('admin'), showUsersPage);
 
 export default router;
