@@ -1,13 +1,10 @@
 import express from 'express';
-import pool from './models/db.js'; // Lo necesitas únicamente para tus consultas de mantenimiento de abajo
-import { body } from 'express-validator'; // IMPORTANTE (W04): Para validar los datos del servidor
+import pool from './models/db.js';
+import { body } from 'express-validator';
 
-// Importamos las funciones de tus controladores especializados
 import { showHomePage } from './controllers/index.js';
 import { testErrorPage } from './controllers/errors.js';
 
-
-// MODIFICADO (W04): Traemos todas las funciones necesarias del controlador de organizaciones
 import { 
     showOrganizationsPage, 
     showOrganizationDetailPage,
@@ -16,7 +13,7 @@ import {
     showEditOrganizationForm,
     processEditOrganizationForm
 } from './controllers/organizations.js';
-// MODIFICADO (W04): Traemos TODAS las funciones del controlador de categorías (las viejas y las nuevas)
+
 import { 
     showCategoriesPage, 
     showCategoryDetailPage,
@@ -54,40 +51,31 @@ router.get('/project/:id', showProjectDetailPage);
 router.get('/category/:id', showCategoryDetailPage);
 
 // ========================================================
-// NUEVAS RUTAS DE LA SEMANA 4 (W04) - ORGANIZACIONES
+// RUTAS PROTEGIDAS W04 - ORGANIZACIONES
 // ========================================================
-// 1. Ruta GET para MOSTRAR la interfaz del formulario limpio
-router.get('/new-organization', showNewOrganizationForm);
+router.get('/new-organization', requireLogin, requireRole('admin'), showNewOrganizationForm);
+router.post('/new-organization', requireLogin, requireRole('admin'), processNewOrganizationForm);
 
-// 2. Ruta POST para RECIBIR y procesar los datos que envíe el formulario
-router.post('/new-organization', processNewOrganizationForm);
-
-
-
-// Editar organización
-router.get('/edit-organization/:id', showEditOrganizationForm);
-router.post('/edit-organization/:id', processEditOrganizationForm);
-
-// Editar proyecto y asignar categorías
-router.get('/edit-project/:id', showEditProjectPage);
-router.post('/edit-project/:id', processEditProject);
-router.get('/assign-categories/:id', showAssignCategoriesPage);
-router.post('/assign-categories/:id', processAssignCategories);
-
-// Crear proyecto
-router.get('/new-project', showNewProjectPage);
-router.post('/new-project', processNewProject);
-
+router.get('/edit-organization/:id', requireLogin, requireRole('admin'), showEditOrganizationForm);
+router.post('/edit-organization/:id', requireLogin, requireRole('admin'), processEditOrganizationForm);
 
 // ========================================================
-// NUEVAS RUTAS DE LA SEMANA 4 (W04) - CATEGORÍAS (CON VALIDACIÓN)
+// RUTAS PROTEGIDAS W04 - PROYECTOS
 // ========================================================
-// 1. Formulario para CREAR una nueva categoría (GET)
-router.get('/new-category', showNewCategoryPage);
+router.get('/new-project', requireLogin, requireRole('admin'), showNewProjectPage);
+router.post('/new-project', requireLogin, requireRole('admin'), processNewProject);
 
-// 2. Procesar CREACIÓN de categoría con validación del servidor (POST)
-// Exige obligatoriedad, mínimo 3 caracteres y máximo 100 caracteres.
-router.post('/new-category', [
+router.get('/edit-project/:id', requireLogin, requireRole('admin'), showEditProjectPage);
+router.post('/edit-project/:id', requireLogin, requireRole('admin'), processEditProject);
+
+router.get('/assign-categories/:id', requireLogin, requireRole('admin'), showAssignCategoriesPage);
+router.post('/assign-categories/:id', requireLogin, requireRole('admin'), processAssignCategories);
+
+// ========================================================
+// RUTAS PROTEGIDAS W04 - CATEGORÍAS (CON VALIDACIÓN)
+// ========================================================
+router.get('/new-category', requireLogin, requireRole('admin'), showNewCategoryPage);
+router.post('/new-category', requireLogin, requireRole('admin'), [
     body('category_name')
         .trim()
         .notEmpty().withMessage('Category name is required.')
@@ -95,11 +83,8 @@ router.post('/new-category', [
         .isLength({ max: 100 }).withMessage('Category name cannot exceed 100 characters.')
 ], processNewCategory);
 
-// 3. Formulario para EDITAR una categoría existente (GET)
-router.get('/edit-category/:id', showEditCategoryPage);
-
-// 4. Procesar ACTUALIZACIÓN de categoría con validación del servidor (POST)
-router.post('/edit-category/:id', [
+router.get('/edit-category/:id', requireLogin, requireRole('admin'), showEditCategoryPage);
+router.post('/edit-category/:id', requireLogin, requireRole('admin'), [
     body('category_name')
         .trim()
         .notEmpty().withMessage('Category name is required.')
@@ -107,13 +92,10 @@ router.post('/edit-category/:id', [
         .isLength({ max: 100 }).withMessage('Category name cannot exceed 100 characters.')
 ], processUpdateCategory);
 
-
 // ==========================================
 // RUTA DE PRUEBA DE ERRORES
 // ==========================================
-// Ruta de prueba para forzar el Error 500 y verificar tus pantallas de error
 router.get('/test-error', testErrorPage);
-
 
 // ==========================================
 // HERRAMIENTAS DE MANTENIMIENTO DE BASE DE DATOS
@@ -178,17 +160,17 @@ router.get('/setup-db', async (req, res) => {
     }
 });
 
-// User registration routes
+// ==========================================
+// USUARIOS
+// ==========================================
 router.get('/register', showUserRegistrationForm);
 router.post('/register', processUserRegistrationForm);
 
-// User login routes
 router.get('/login', showLoginForm);
 router.post('/login', processLoginForm);
 router.get('/logout', processLogout);
-// Protected dashboard route
-router.get('/dashboard', requireLogin, showDashboard);
 
+router.get('/dashboard', requireLogin, showDashboard);
 router.get('/users', requireLogin, requireRole('admin'), showUsersPage);
 
 export default router;
