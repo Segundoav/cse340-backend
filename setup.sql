@@ -68,3 +68,11 @@ CREATE TABLE IF NOT EXISTS public.users (
     role_id INTEGER REFERENCES public.roles(role_id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Project Volunteers (many-to-many: users <-> projects)
+CREATE TABLE IF NOT EXISTS public.project_volunteers (
+    user_id INT REFERENCES public.users(user_id) ON DELETE CASCADE,
+    project_id INT REFERENCES public.projects(project_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, project_id)
+);

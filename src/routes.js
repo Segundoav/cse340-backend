@@ -160,6 +160,22 @@ router.get('/setup-db', async (req, res) => {
     }
 });
 
+router.get('/setup-volunteers', async (req, res) => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS public.project_volunteers (
+                user_id INT REFERENCES public.users(user_id) ON DELETE CASCADE,
+                project_id INT REFERENCES public.projects(project_id) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, project_id)
+            );
+        `);
+        res.send('✅ Table project_volunteers created successfully');
+    } catch (error) {
+        res.status(500).send('❌ Error: ' + error.message);
+    }
+});
+
 // ==========================================
 // USUARIOS
 // ==========================================
