@@ -5,6 +5,8 @@ import { body } from 'express-validator';
 import { showHomePage } from './controllers/index.js';
 import { testErrorPage } from './controllers/errors.js';
 
+import { processAddVolunteer, processRemoveVolunteer } from './controllers/volunteers.js';
+
 import { 
     showOrganizationsPage, 
     showOrganizationDetailPage,
@@ -188,5 +190,11 @@ router.get('/logout', processLogout);
 
 router.get('/dashboard', requireLogin, showDashboard);
 router.get('/users', requireLogin, requireRole('admin'), showUsersPage);
+
+// ========================================================
+// RUTAS W06 - VOLUNTARIOS
+// ========================================================
+router.post('/volunteer/:id', requireLogin, processAddVolunteer);
+router.post('/unvolunteer/:id', requireLogin, processRemoveVolunteer);
 
 export default router;

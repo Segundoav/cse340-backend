@@ -1,5 +1,6 @@
 import pool from '../models/db.js';
 import { getProjectById, updateProject, getAllCategoriesForProject, updateProjectCategories } from '../models/projects.js';
+import { isVolunteer as checkIsVolunteer } from '../models/volunteers.js';
 
 export const showProjectsPage = async (req, res) => {
     try {
@@ -24,7 +25,18 @@ export const showProjectDetailPage = async (req, res) => {
             WHERE pc.project_id = $1
         `, [projectId]);
 
-        res.render('project-detail', { title: project.project_name, project, categories: categoryResult.rows });
+        // Verificar si el usuario es voluntario
+        let isVolunteer = false;
+        if (req.session && req.session.user) {
+            isVolunteer = await checkIsVolunteer(req.session.user.user_id, projectId);
+        }
+
+        res.render('project-detail', { 
+            title: project.project_name, 
+            project, 
+            categories: categoryResult.rows,
+            isVolunteer
+        });
     } catch (error) {
         res.status(500).send("Server Error");
     }

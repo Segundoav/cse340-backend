@@ -1,46 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/styles.css">
-</head>
-<body>
-    <header>
-        <nav style="background: #333; padding: 10px; text-align: center;">
-            <a href="/" style="color: white; margin: 0 10px; text-decoration: none;">Home</a>
-            <a href="/organizations" style="color: white; margin: 0 10px; text-decoration: none;">Organizations</a>
-            <a href="/projects" style="color: white; margin: 0 10px; text-decoration: none;">Projects</a>
-            <a href="/categories" style="color: white; margin: 0 10px; text-decoration: none;">Categories</a>
-        </nav>
-    </header>
+<%- include('partials/header') %>
 
-    <main style="max-width: 800px; margin: 40px auto; padding: 20px; font-family: sans-serif; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 8px;">
-        
-        <h1 style="color: #222;"><%= project.project_name %></h1>
+<main class="container">
+    <h1><%= project.project_name %></h1>
+
+    <% if (locals.user && locals.user.role === 'admin') { %>
         <a href="/edit-project/<%= project.project_id %>">Edit Project</a> | 
         <a href="/assign-categories/<%= project.project_id %>">Update Categories</a>
-        <p style="font-size: 1.1em; color: #555; line-height: 1.6;"><%= project.description %></p>
+    <% } %>
 
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+    <p><%= project.description %></p>
 
-        <div class="project-categories">
-            <h3 style="color: #444;">Categories:</h3>
-            <% if (categories && categories.length > 0) { %>
-                <% categories.forEach(category => { %>
-                    <a href="/category/<%= category.category_id %>" style="display: inline-block; background: #007acc; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; margin-right: 8px; font-weight: bold; font-size: 0.9em;">
-                        <%= category.category_name %>
-                    </a>
-                <% }) %>
+    <hr>
+
+    <div class="project-categories">
+        <h3>Categories:</h3>
+        <% if (categories && categories.length > 0) { %>
+            <% categories.forEach(category => { %>
+                <a href="/category/<%= category.category_id %>" style="display: inline-block; background: #007acc; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; margin-right: 8px; font-weight: bold; font-size: 0.9em;">
+                    <%= category.category_name %>
+                </a>
+            <% }) %>
+        <% } else { %>
+            <p>No categories assigned to this project.</p>
+        <% } %>
+    </div>
+
+    <hr>
+
+    <!-- SECCIÓN DE VOLUNTARIADO -->
+    <% if (locals.user) { %>
+        <div class="volunteer-section">
+            <% if (isVolunteer) { %>
+                <p><strong>✅ You are volunteering for this project.</strong></p>
+                <form action="/unvolunteer/<%= project.project_id %>" method="POST">
+                    <button type="submit">Unvolunteer</button>
+                </form>
             <% } else { %>
-                <p style="color: #777; font-style: italic;">No categories assigned to this project.</p>
+                <form action="/volunteer/<%= project.project_id %>" method="POST">
+                    <button type="submit">Volunteer for this project</button>
+                </form>
             <% } %>
         </div>
-    </main>
+    <% } %>
+</main>
 
-    <footer style="text-align: center; margin-top: 40px; color: #878787; font-size: 0.9em;">
-        <p>&copy; 2026 CSE 340 Service Network.</p>
-    </footer>
-</body>
-</html>
+<%- include('partials/footer') %>

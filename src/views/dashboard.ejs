@@ -1,6 +1,6 @@
 <%- include('partials/header') %>
 
-<main>
+<main class="container">
     <h1><%= title %></h1>
 
     <h2>Dashboard</h2>
@@ -12,6 +12,24 @@
         <ul>
             <li><a href="/users">Manage Users</a></li>
         </ul>
+    <% } %>
+
+    <hr>
+
+    <h3>My Volunteer Projects</h3>
+    <% if (volunteerProjects && volunteerProjects.length > 0) { %>
+        <ul>
+            <% volunteerProjects.forEach(project => { %>
+                <li>
+                    <a href="/project/<%= project.project_id %>"><%= project.project_name %></a>
+                    <form action="/unvolunteer/<%= project.project_id %>" method="POST" style="display:inline;">
+                        <button type="submit">Unvolunteer</button>
+                    </form>
+                </li>
+            <% }) %>
+        </ul>
+    <% } else { %>
+        <p>You have not volunteered for any projects yet.</p>
     <% } %>
 </main>
 
