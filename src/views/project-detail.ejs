@@ -3,7 +3,7 @@
 <main class="container">
     <h1><%= project.project_name %></h1>
 
-    <% if (locals.user && locals.user.role === 'admin') { %>
+    <% if (locals.user && locals.user.role_name === 'admin') { %>
         <a href="/edit-project/<%= project.project_id %>">Edit Project</a> | 
         <a href="/assign-categories/<%= project.project_id %>">Update Categories</a>
     <% } %>

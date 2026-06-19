@@ -2,7 +2,11 @@
 
 <main class="container">
     <h1>Category: <%= category.category_name %></h1>
-    
+
+    <% if (locals.user && locals.user.role_name === 'admin') { %>
+        <a href="/edit-category/<%= category.category_id %>">Edit Category</a>
+    <% } %>
+
     <h2>Service Projects in this Category</h2>
     <% if (projects && projects.length > 0) { %>
         <ul>
@@ -11,7 +15,8 @@
                     <a href="/project/<%= project.project_id %>">
                         <strong><%= project.project_name %></strong>
                     </a>
-                    <p><%= project.description %></p> </li>
+                    <p><%= project.description %></p>
+                </li>
             <% }) %>
         </ul>
     <% } else { %>

@@ -2,6 +2,11 @@
 
 <main>
     <h1><%= title %></h1>
+
+    <% if (locals.user && locals.user.role_name === 'admin') { %>
+        <a href="/new-category">+ Add New Category</a>
+    <% } %>
+
     <ul>
         <% categories.forEach(category => { %>
             <li>

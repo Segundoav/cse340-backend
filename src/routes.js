@@ -65,10 +65,28 @@ router.post('/edit-organization/:id', requireLogin, requireRole('admin'), proces
 // RUTAS PROTEGIDAS W04 - PROYECTOS
 // ========================================================
 router.get('/new-project', requireLogin, requireRole('admin'), showNewProjectPage);
-router.post('/new-project', requireLogin, requireRole('admin'), processNewProject);
+router.post('/new-project', requireLogin, requireRole('admin'), [
+    body('project_name')
+        .trim()
+        .notEmpty().withMessage('Project name is required.')
+        .isLength({ min: 3 }).withMessage('Project name must be at least 3 characters long.')
+        .isLength({ max: 150 }).withMessage('Project name cannot exceed 150 characters.'),
+    body('description')
+        .trim()
+        .notEmpty().withMessage('Description is required.')
+], processNewProject);
 
 router.get('/edit-project/:id', requireLogin, requireRole('admin'), showEditProjectPage);
-router.post('/edit-project/:id', requireLogin, requireRole('admin'), processEditProject);
+router.post('/edit-project/:id', requireLogin, requireRole('admin'), [
+    body('project_name')
+        .trim()
+        .notEmpty().withMessage('Project name is required.')
+        .isLength({ min: 3 }).withMessage('Project name must be at least 3 characters long.')
+        .isLength({ max: 150 }).withMessage('Project name cannot exceed 150 characters.'),
+    body('description')
+        .trim()
+        .notEmpty().withMessage('Description is required.')
+], processEditProject);
 
 router.get('/assign-categories/:id', requireLogin, requireRole('admin'), showAssignCategoriesPage);
 router.post('/assign-categories/:id', requireLogin, requireRole('admin'), processAssignCategories);

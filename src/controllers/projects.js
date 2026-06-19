@@ -2,13 +2,10 @@ import pool from '../models/db.js';
 import { getProjectById, updateProject, getAllCategoriesForProject, updateProjectCategories } from '../models/projects.js';
 import { isVolunteer as checkIsVolunteer } from '../models/volunteers.js';
 
-export const showProjectsPage = async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM public.projects');
-        res.render('projects', { title: 'Service Projects', projects: result.rows });
-    } catch (error) {
-        res.status(500).send("Error loading projects");
-    }
+import { validationResult } from 'express-validator';
+
+export const showNewProjectPage = async (req, res) => {
+    res.render('new-project', { title: 'Create New Project', errors: null });
 };
 
 export const showProjectDetailPage = async (req, res) => {
@@ -56,6 +53,15 @@ export const showEditProjectPage = async (req, res, next) => {
 };
 
 export const processEditProject = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const project = await getProjectById(req.body.project_id);
+        return res.status(400).render('edit-project', { 
+            title: 'Edit Project', 
+            errors: errors.array(),
+            project: { ...project, project_name: req.body.project_name, description: req.body.description }
+        });
+    }
     try {
         const { project_id, project_name, description } = req.body;
         await updateProject(project_id, project_name, description);
@@ -91,11 +97,18 @@ export const processAssignCategories = async (req, res, next) => {
     }
 };
 
-export const showNewProjectPage = async (req, res) => {
-    res.render('new-project', { title: 'Create New Project', errors: null });
-};
+
 
 export const processNewProject = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).render('new-project', { 
+            title: 'Create New Project', 
+            errors: errors.array(),
+            project_name: req.body.project_name,
+            description: req.body.description
+        });
+    }
     try {
         const { project_name, description } = req.body;
         const result = await pool.query(
@@ -106,5 +119,14 @@ export const processNewProject = async (req, res, next) => {
         res.redirect(`/project/${result.rows[0].project_id}`);
     } catch (error) {
         next(error);
+    }
+};
+
+export const showProjectsPage = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM public.projects');
+        res.render('projects', { title: 'Service Projects', projects: result.rows });
+    } catch (error) {
+        res.status(500).send("Error loading projects");
     }
 };
